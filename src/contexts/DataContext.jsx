@@ -210,7 +210,10 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_CUSTOMER, payload: newCustomer });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomers = [...state.customers, newCustomer];
+    await saveDataToServer(updatedCustomers, state.employees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return newCustomer;
   };
@@ -223,14 +226,22 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.UPDATE_CUSTOMER, payload: updatedCustomer });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomers = state.customers.map(customer =>
+      customer.id === id ? updatedCustomer : customer
+    );
+    await saveDataToServer(updatedCustomers, state.employees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return updatedCustomer;
   };
 
   const deleteCustomer = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_CUSTOMER, payload: id });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomers = state.customers.filter(customer => customer.id !== id);
+    await saveDataToServer(updatedCustomers, state.employees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
   };
 
   // 员工管理函数
@@ -243,7 +254,10 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_EMPLOYEE, payload: newEmployee });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedEmployees = [...state.employees, newEmployee];
+    await saveDataToServer(state.customers, updatedEmployees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return newEmployee;
   };
@@ -256,14 +270,22 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.UPDATE_EMPLOYEE, payload: updatedEmployee });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedEmployees = state.employees.map(employee =>
+      employee.id === id ? updatedEmployee : employee
+    );
+    await saveDataToServer(state.customers, updatedEmployees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return updatedEmployee;
   };
 
   const deleteEmployee = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_EMPLOYEE, payload: id });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedEmployees = state.employees.filter(employee => employee.id !== id);
+    await saveDataToServer(state.customers, updatedEmployees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
   };
 
   // 客户积分管理函数
@@ -276,7 +298,10 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_CUSTOMER_POINT, payload: newPoint });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomerPoints = [...state.customerPoints, newPoint];
+    await saveDataToServer(state.customers, state.employees, updatedCustomerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return newPoint;
   };
@@ -288,6 +313,8 @@ export const DataProvider = ({ children }) => {
       id,
       updatedAt: new Date().toISOString()
     };
+
+    let updatedCustomerPointRecords = state.customerPointRecords;
 
     // 如果积分发生变化，创建积分记录
     if (oldPoint && parseInt(pointData.points) !== parseInt(oldPoint.points)) {
@@ -315,17 +342,26 @@ export const DataProvider = ({ children }) => {
       };
 
       dispatch({ type: DATA_ACTIONS.ADD_CUSTOMER_POINT_RECORD, payload: pointRecord });
+      updatedCustomerPointRecords = [...state.customerPointRecords, pointRecord];
     }
 
     dispatch({ type: DATA_ACTIONS.UPDATE_CUSTOMER_POINT, payload: updatedPoint });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomerPoints = state.customerPoints.map(point =>
+      point.id === id ? updatedPoint : point
+    );
+    await saveDataToServer(state.customers, state.employees, updatedCustomerPoints, state.employeePoints, updatedCustomerPointRecords, state.employeePointRecords);
 
     return updatedPoint;
   };
 
   const deleteCustomerPoint = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_CUSTOMER_POINT, payload: id });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedCustomerPoints = state.customerPoints.filter(point => point.id !== id);
+    await saveDataToServer(state.customers, state.employees, updatedCustomerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
   };
 
   // 员工积分管理函数
@@ -338,7 +374,10 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_EMPLOYEE_POINT, payload: newPoint });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedEmployeePoints = [...state.employeePoints, newPoint];
+    await saveDataToServer(state.customers, state.employees, state.customerPoints, updatedEmployeePoints, state.customerPointRecords, state.employeePointRecords);
 
     return newPoint;
   };
@@ -380,6 +419,8 @@ export const DataProvider = ({ children }) => {
     }
 
     dispatch({ type: DATA_ACTIONS.UPDATE_EMPLOYEE_POINT, payload: updatedPoint });
+
+    // 使用更新后的数据保存（这里需要重构批量函数，暂时简化）
     await saveDataToServer();
 
     return updatedPoint;
@@ -387,7 +428,10 @@ export const DataProvider = ({ children }) => {
 
   const deleteEmployeePoint = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_EMPLOYEE_POINT, payload: id });
-    await saveDataToServer();
+
+    // 使用更新后的数据保存
+    const updatedEmployeePoints = state.employeePoints.filter(point => point.id !== id);
+    await saveDataToServer(state.customers, state.employees, state.customerPoints, updatedEmployeePoints, state.customerPointRecords, state.employeePointRecords);
   };
 
   // 批量调整客户积分

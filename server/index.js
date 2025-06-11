@@ -3,12 +3,40 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import CryptoJS from 'crypto-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// 加密密钥
+const SECRET_KEY = 'AllcareRecordWeb2024SecretKey';
+
+// 加密函数
+function encryptData(data) {
+  try {
+    const jsonString = JSON.stringify(data);
+    const encrypted = CryptoJS.AES.encrypt(jsonString, SECRET_KEY).toString();
+    return encrypted;
+  } catch (error) {
+    console.error('加密失败:', error);
+    return null;
+  }
+}
+
+// 解密函数
+function decryptData(encryptedData) {
+  try {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY);
+    const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decryptedString);
+  } catch (error) {
+    console.error('解密失败:', error);
+    return null;
+  }
+}
 
 // 中间件
 app.use(cors());
@@ -46,8 +74,26 @@ async function ensureDataDirectory() {
 // 读取数据文件
 async function readDataFile(type) {
   try {
-    const data = await fs.readFile(DATA_FILES[type], 'utf8');
-    return JSON.parse(data);
+    const encryptedData = await fs.readFile(DATA_FILES[type], 'utf8');
+
+    // 如果文件为空或只包含空数组，直接返回空数组
+    if (!encryptedData || encryptedData.trim() === '[]') {
+      return [];
+    }
+
+    // 尝试解密数据
+    const decryptedData = decryptData(encryptedData);
+    if (decryptedData !== null) {
+      return decryptedData;
+    }
+
+    // 如果解密失败，尝试直接解析（兼容未加密的旧数据）
+    try {
+      return JSON.parse(encryptedData);
+    } catch {
+      console.warn(`${type}数据解密和解析都失败，返回空数组`);
+      return [];
+    }
   } catch (error) {
     console.error(`读取${type}数据失败:`, error);
     return [];
@@ -57,7 +103,15 @@ async function readDataFile(type) {
 // 写入数据文件
 async function writeDataFile(type, data) {
   try {
-    await fs.writeFile(DATA_FILES[type], JSON.stringify(data, null, 2));
+    // 加密数据
+    const encryptedData = encryptData(data);
+    if (encryptedData === null) {
+      console.error(`加密${type}数据失败`);
+      return false;
+    }
+
+    await fs.writeFile(DATA_FILES[type], encryptedData);
+    console.log(`成功保存加密的${type}数据`);
     return true;
   } catch (error) {
     console.error(`写入${type}数据失败:`, error);
