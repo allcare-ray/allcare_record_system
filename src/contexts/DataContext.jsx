@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { secureStore, secureRetrieve } from '../utils/encryption';
+import { getAllData, saveData, saveAllData } from '../utils/api';
 
 // 初始状态
 const initialState = {
@@ -148,15 +148,18 @@ export const DataProvider = ({ children }) => {
     loadData();
   }, []);
 
-  // 保存数据到本地存储
-  const saveData = (customers = state.customers, employees = state.employees, customerPoints = state.customerPoints, employeePoints = state.employeePoints, customerPointRecords = state.customerPointRecords, employeePointRecords = state.employeePointRecords) => {
+  // 保存数据到服务器
+  const saveDataToServer = async (customers = state.customers, employees = state.employees, customerPoints = state.customerPoints, employeePoints = state.employeePoints, customerPointRecords = state.customerPointRecords, employeePointRecords = state.employeePointRecords) => {
     try {
-      secureStore('customers', customers);
-      secureStore('employees', employees);
-      secureStore('customerPoints', customerPoints);
-      secureStore('employeePoints', employeePoints);
-      secureStore('customerPointRecords', customerPointRecords);
-      secureStore('employeePointRecords', employeePointRecords);
+      const allData = {
+        customers,
+        employees,
+        customerPoints,
+        employeePoints,
+        customerPointRecords,
+        employeePointRecords
+      };
+      await saveAllData(allData);
     } catch (error) {
       console.error('保存数据失败:', error);
       dispatch({ type: DATA_ACTIONS.SET_ERROR, payload: '保存数据失败' });
@@ -164,25 +167,27 @@ export const DataProvider = ({ children }) => {
   };
 
   // 简化的保存函数
-  const saveAllData = () => {
-    saveData(state.customers, state.employees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
+  const saveAllDataToServer = async () => {
+    await saveDataToServer(state.customers, state.employees, state.customerPoints, state.employeePoints, state.customerPointRecords, state.employeePointRecords);
   };
 
-  // 从本地存储加载数据
-  const loadData = () => {
+  // 从服务器加载数据
+  const loadData = async () => {
     try {
       dispatch({ type: DATA_ACTIONS.SET_LOADING, payload: true });
 
-      const customers = secureRetrieve('customers') || [];
-      const employees = secureRetrieve('employees') || [];
-      const customerPoints = secureRetrieve('customerPoints') || [];
-      const employeePoints = secureRetrieve('employeePoints') || [];
-      const customerPointRecords = secureRetrieve('customerPointRecords') || [];
-      const employeePointRecords = secureRetrieve('employeePointRecords') || [];
+      const data = await getAllData();
 
       dispatch({
         type: DATA_ACTIONS.LOAD_DATA,
-        payload: { customers, employees, customerPoints, employeePoints, customerPointRecords, employeePointRecords }
+        payload: {
+          customers: data.customers || [],
+          employees: data.employees || [],
+          customerPoints: data.customerPoints || [],
+          employeePoints: data.employeePoints || [],
+          customerPointRecords: data.customerPointRecords || [],
+          employeePointRecords: data.employeePointRecords || []
+        }
       });
     } catch (error) {
       console.error('加载数据失败:', error);
@@ -192,77 +197,77 @@ export const DataProvider = ({ children }) => {
 
   // 生成唯一ID
   const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   };
 
   // 客户管理函数
-  const addCustomer = (customerData) => {
+  const addCustomer = async (customerData) => {
     const newCustomer = {
       ...customerData,
       id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     dispatch({ type: DATA_ACTIONS.ADD_CUSTOMER, payload: newCustomer });
-    saveAllData();
-    
+    await saveDataToServer();
+
     return newCustomer;
   };
 
-  const updateCustomer = (id, customerData) => {
+  const updateCustomer = async (id, customerData) => {
     const updatedCustomer = {
       ...customerData,
       id,
       updatedAt: new Date().toISOString()
     };
-    
+
     dispatch({ type: DATA_ACTIONS.UPDATE_CUSTOMER, payload: updatedCustomer });
-    saveAllData();
-    
+    await saveDataToServer();
+
     return updatedCustomer;
   };
 
-  const deleteCustomer = (id) => {
+  const deleteCustomer = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_CUSTOMER, payload: id });
-    saveAllData();
+    await saveDataToServer();
   };
 
   // 员工管理函数
-  const addEmployee = (employeeData) => {
+  const addEmployee = async (employeeData) => {
     const newEmployee = {
       ...employeeData,
       id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     dispatch({ type: DATA_ACTIONS.ADD_EMPLOYEE, payload: newEmployee });
-    saveAllData();
-    
+    await saveDataToServer();
+
     return newEmployee;
   };
 
-  const updateEmployee = (id, employeeData) => {
+  const updateEmployee = async (id, employeeData) => {
     const updatedEmployee = {
       ...employeeData,
       id,
       updatedAt: new Date().toISOString()
     };
-    
+
     dispatch({ type: DATA_ACTIONS.UPDATE_EMPLOYEE, payload: updatedEmployee });
-    saveAllData();
-    
+    await saveDataToServer();
+
     return updatedEmployee;
   };
 
-  const deleteEmployee = (id) => {
+  const deleteEmployee = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_EMPLOYEE, payload: id });
-    saveAllData();
+    await saveDataToServer();
   };
 
   // 客户积分管理函数
-  const addCustomerPoint = (pointData) => {
+  const addCustomerPoint = async (pointData) => {
     const newPoint = {
       ...pointData,
       id: generateId(),
@@ -271,12 +276,12 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_CUSTOMER_POINT, payload: newPoint });
-    saveAllData();
+    await saveDataToServer();
 
     return newPoint;
   };
 
-  const updateCustomerPoint = (id, pointData, adjustmentReason = null, isEdit = false) => {
+  const updateCustomerPoint = async (id, pointData, adjustmentReason = null, isEdit = false) => {
     const oldPoint = state.customerPoints.find(point => point.id === id);
     const updatedPoint = {
       ...pointData,
@@ -313,18 +318,18 @@ export const DataProvider = ({ children }) => {
     }
 
     dispatch({ type: DATA_ACTIONS.UPDATE_CUSTOMER_POINT, payload: updatedPoint });
-    saveAllData();
+    await saveDataToServer();
 
     return updatedPoint;
   };
 
-  const deleteCustomerPoint = (id) => {
+  const deleteCustomerPoint = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_CUSTOMER_POINT, payload: id });
-    saveAllData();
+    await saveDataToServer();
   };
 
   // 员工积分管理函数
-  const addEmployeePoint = (pointData) => {
+  const addEmployeePoint = async (pointData) => {
     const newPoint = {
       ...pointData,
       id: generateId(),
@@ -333,12 +338,12 @@ export const DataProvider = ({ children }) => {
     };
 
     dispatch({ type: DATA_ACTIONS.ADD_EMPLOYEE_POINT, payload: newPoint });
-    saveAllData();
+    await saveDataToServer();
 
     return newPoint;
   };
 
-  const updateEmployeePoint = (id, pointData, adjustmentReason = null, isEdit = false) => {
+  const updateEmployeePoint = async (id, pointData, adjustmentReason = null, isEdit = false) => {
     const oldPoint = state.employeePoints.find(point => point.id === id);
     const updatedPoint = {
       ...pointData,
@@ -375,18 +380,18 @@ export const DataProvider = ({ children }) => {
     }
 
     dispatch({ type: DATA_ACTIONS.UPDATE_EMPLOYEE_POINT, payload: updatedPoint });
-    saveAllData();
+    await saveDataToServer();
 
     return updatedPoint;
   };
 
-  const deleteEmployeePoint = (id) => {
+  const deleteEmployeePoint = async (id) => {
     dispatch({ type: DATA_ACTIONS.DELETE_EMPLOYEE_POINT, payload: id });
-    saveAllData();
+    await saveDataToServer();
   };
 
   // 批量调整客户积分
-  const batchUpdateCustomerPoints = (pointChange, reason = '批量积分调整') => {
+  const batchUpdateCustomerPoints = async (pointChange, reason = '批量积分调整') => {
     const timestamp = new Date().toLocaleString('zh-CN');
     const createdAt = new Date().toISOString();
 
@@ -419,11 +424,11 @@ export const DataProvider = ({ children }) => {
       }
     });
 
-    saveAllData();
+    await saveDataToServer();
   };
 
   // 批量调整员工积分
-  const batchUpdateEmployeePoints = (pointChange, reason = '批量积分调整') => {
+  const batchUpdateEmployeePoints = async (pointChange, reason = '批量积分调整') => {
     const timestamp = new Date().toLocaleString('zh-CN');
     const createdAt = new Date().toISOString();
 
@@ -456,7 +461,7 @@ export const DataProvider = ({ children }) => {
       }
     });
 
-    saveAllData();
+    await saveDataToServer();
   };
 
   const value = {
