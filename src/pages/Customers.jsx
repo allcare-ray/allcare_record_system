@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useData } from '../contexts/DataContext';
-import { useNavigate } from 'react-router-dom';
 import Pagination from '../components/Pagination';
 import {
-  Plus,
   Search,
-  Edit,
   Trash2,
   Phone,
   Mail,
@@ -23,7 +20,6 @@ import {
 
 const Customers = () => {
   const { customers, deleteCustomer } = useData();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'card' or 'list'
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -124,12 +120,6 @@ const Customers = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <button
-            onClick={() => navigate(`/customers/edit/${customer.id}`)}
-            className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
           <button
             onClick={() => setDeleteConfirm(customer.id)}
             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
@@ -324,16 +314,7 @@ const Customers = () => {
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/customers/edit/${customer.id}`);
-                      }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                      title="编辑"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -388,13 +369,7 @@ const Customers = () => {
               <Grid3X3 className="w-4 h-4" />
             </button>
           </div>
-          <button
-            onClick={() => navigate('/customers/new')}
-            className="btn-primary flex items-center"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            添加客户
-          </button>
+
         </div>
       </div>
 
@@ -464,16 +439,8 @@ const Customers = () => {
             {searchTerm ? '未找到匹配的客户' : '暂无客户'}
           </h3>
           <p className="text-gray-600 mb-6">
-            {searchTerm ? '请尝试其他搜索条件' : '开始添加您的第一个客户'}
+            {searchTerm ? '请尝试其他搜索条件' : '暂无客户数据'}
           </p>
-          {!searchTerm && (
-            <button
-              onClick={() => navigate('/customers/new')}
-              className="btn-primary"
-            >
-              添加客户
-            </button>
-          )}
         </div>
       )}
 
@@ -588,18 +555,9 @@ const Customers = () => {
             <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="btn-secondary"
-              >
-                关闭
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedCustomer(null);
-                  navigate(`/customers/edit/${selectedCustomer.id}`);
-                }}
                 className="btn-primary"
               >
-                编辑客户
+                关闭
               </button>
             </div>
           </div>

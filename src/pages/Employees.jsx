@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useData } from '../contexts/DataContext';
-import { useNavigate } from 'react-router-dom';
 import Pagination from '../components/Pagination';
 import {
-  Plus,
   Search,
-  Edit,
   Trash2,
   Phone,
   Mail,
@@ -22,7 +19,6 @@ import {
 
 const Employees = () => {
   const { employees, deleteEmployee } = useData();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'card' or 'list'
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -114,12 +110,6 @@ const Employees = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <button
-            onClick={() => navigate(`/employees/edit/${employee.id}`)}
-            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
           <button
             onClick={() => setDeleteConfirm(employee.id)}
             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"

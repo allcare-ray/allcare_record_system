@@ -1,12 +1,10 @@
 import React from 'react';
 import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
-import { Users, UserCheck, Clock, TrendingUp, Plus } from 'lucide-react';
+import { Users, UserCheck, Clock, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { customers, employees } = useData();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   // 计算统计数据
@@ -58,43 +56,19 @@ const Dashboard = () => {
     );
   };
 
-  const QuickActionCard = ({ icon: Icon, title, description, onClick, color = 'primary' }) => {
-    const colorClasses = {
-      blue: 'bg-blue-100 text-blue-600',
-      green: 'bg-green-100 text-green-600',
-      purple: 'bg-purple-100 text-purple-600',
-      primary: 'bg-primary-100 text-primary-600'
-    };
 
-    return (
-      <button
-        onClick={onClick}
-        className="card hover:shadow-md transition-shadow duration-200 text-left w-full"
-      >
-        <div className="flex items-center">
-          <div className={`p-3 rounded-lg ${colorClasses[color] || colorClasses.primary}`}>
-            <Icon className="w-6 h-6" />
-          </div>
-          <div className="ml-4">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-600">{description}</p>
-          </div>
-        </div>
-      </button>
-    );
-  };
 
   return (
     <div className="space-y-6">
       {/* 欢迎信息 */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">
-          欢迎回来，{user?.username}！
+          Allcare 管理系统
         </h1>
         <p className="text-primary-100">
-          今天是 {new Date().toLocaleDateString('zh-CN', { 
-            year: 'numeric', 
-            month: 'long', 
+          今天是 {new Date().toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric',
             weekday: 'long'
           })}
@@ -133,23 +107,7 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* 快速操作 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <QuickActionCard
-          icon={Plus}
-          title="添加新客户"
-          description="快速录入新客户信息"
-          onClick={() => navigate('/customers/new')}
-          color="primary"
-        />
-        <QuickActionCard
-          icon={Plus}
-          title="添加新员工"
-          description="快速录入新员工信息"
-          onClick={() => navigate('/employees/new')}
-          color="green"
-        />
-      </div>
+
 
       {/* 最近活动 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
   Users,
   UserCheck,
-  LogOut,
   Menu,
   X,
   Heart,
-  Settings,
   Star
 } from 'lucide-react';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,11 +22,6 @@ const Layout = () => {
     { name: '客户积分', href: '/customer-points', icon: Star },
     { name: '员工积分', href: '/employee-points', icon: Star },
   ];
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const isActive = (href) => {
     if (href === '/') {
@@ -97,17 +88,6 @@ const Layout = () => {
               <NavItem key={item.name} item={item} mobile />
             ))}
           </nav>
-
-          {/* 登出按钮 */}
-          <div className="border-t border-gray-200 p-4">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200"
-            >
-              <LogOut className="w-5 h-5 mr-3" />
-              退出登录
-            </button>
-          </div>
         </div>
       </div>
 
@@ -127,21 +107,6 @@ const Layout = () => {
               <h1 className="text-xl font-semibold text-gray-900">
                 {navigation.find(item => isActive(item.href))?.name || '仪表板'}
               </h1>
-            </div>
-
-            <div className="flex items-center space-x-4 mr-4">
-              {/* 用户信息 */}
-              <div className="flex items-center">
-                <div className="flex items-center justify-center w-8 h-8 bg-primary-100 rounded-full">
-                  <span className="text-sm font-medium text-primary-600">
-                    {user?.username?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">{user?.username}</p>
-                  <p className="text-xs text-gray-500">管理员</p>
-                </div>
-              </div>
             </div>
           </div>
         </header>
